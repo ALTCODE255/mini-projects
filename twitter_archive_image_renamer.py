@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 
 directory = input("Absolute path of images: ")
+dupe_count = 0
 
 def get_tweet_timestamp(tid_string):
 	twitter_id = int(tid_string[:19])
@@ -16,9 +17,10 @@ dir_list = os.listdir(directory)
 for current_file in dir_list:
 	new_name = get_tweet_timestamp(current_file)
 	try:
-		os.rename(directory + "\\" + current_file, directory + "\\" + new_name)
+		os.rename(f"{directory}\\{current_file}", f"{directory}\\{new_name}")
 	except FileExistsError:
-		pass
+		dupe_count += 1
+		os.rename(f"{directory}\\{current_file}", f"{directory}\\(DUPLICATE {dupe_count}) - {new_name}")
 	finally:
 		if current_file == dir_list[-1]:
 			break
