@@ -6,11 +6,15 @@ dupe_count = 0
 
 def get_tweet_timestamp(tid_string):
 	twitter_id = int(tid_string[:19])
-	date_binary = str(bin(twitter_id)[2:40])
+	date_binary = str(bin(twitter_id)[2:41])
 	unix_time_seconds = (int(date_binary, 2) + 1288834974657) / 1000
 	timestamp_object = datetime.fromtimestamp(unix_time_seconds)
 	filename = str(timestamp_object.strftime("%Y%m%d_%H%M%S")) + os.path.splitext(tid_string)[1]
+	print(filename)
 	return(filename)
+
+user = input("Filename: ")
+get_tweet_timestamp(user)
 
 dir_list = os.listdir(directory)
 
