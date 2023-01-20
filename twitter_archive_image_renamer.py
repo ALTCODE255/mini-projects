@@ -24,3 +24,6 @@ for current_file in dir_list:
 	finally:
 		if current_file == dir_list[-1]:
 			break
+	
+print(f"---\nDone! {dupe_count} file(s) with duplicate timestamps found. Check folder for renamed files.")
+input("Press enter to exit.")
