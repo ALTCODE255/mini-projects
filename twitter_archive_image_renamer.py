@@ -1,29 +1,55 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+import shutil
+import sys
 
-directory = input("Absolute path of images: ")
-dupe_count = 0
 
-def get_tweet_timestamp(tid_string):
-	twitter_id = int(tid_string[:19])
-	date_binary = str(bin(twitter_id)[2:41])
-	unix_time_seconds = (int(date_binary, 2) + 1288834974657) / 1000
-	timestamp_object = datetime.fromtimestamp(unix_time_seconds)
-	filename = str(timestamp_object.strftime("%Y%m%d_%H%M%S")) + os.path.splitext(tid_string)[1]
-	return(filename)
+def getTweetTimestamp(tweet_id: int) -> datetime:
+    date_binary = str(bin(tweet_id)[2:40])
+    unix_time_seconds = (int(date_binary, 2) + 1288834974657) / 1000
+    timestamp_object = datetime.fromtimestamp(unix_time_seconds)
+    return timestamp_object
 
-dir_list = os.listdir(directory)
 
-for current_file in dir_list:
-	new_name = get_tweet_timestamp(current_file)
-	try:
-		os.rename(f"{directory}\\{current_file}", f"{directory}\\{new_name}")
-	except FileExistsError:
-		dupe_count += 1
-		os.rename(f"{directory}\\{current_file}", f"{directory}\\(DUPLICATE {dupe_count}) - {new_name}")
-	finally:
-		if current_file == dir_list[-1]:
-			break
-	
-print(f"---\nDone! {dupe_count} file(s) with duplicate timestamps found. Check folder for renamed files.")
-input("Press enter to exit.")
+def renameToNewDirectory(in_folder: str, out_folder: str):
+    dupe_count = 0
+    success_count = 0
+    file_list = os.listdir(in_folder)
+    for file in file_list:
+        if file[:19].isdigit():
+            file_ext = os.path.splitext(file)[1]
+            twitter_id = int(file[:19])
+            new_filename = getTweetTimestamp(twitter_id).strftime("%Y%m%d_%H%M%S")
+            if os.path.exists(f"{out_folder}\\{new_filename + file_ext}"):
+                dupe_count = 0
+                hasDuplicates = True
+                while hasDuplicates:
+                    dupe_count += 1
+                    new_filename = (
+                        getTweetTimestamp(twitter_id) + timedelta(seconds=dupe_count)
+                    ).strftime("%Y%m%d_%H%M%S")
+                    hasDuplicates = os.path.exists(
+                        f"{out_folder}\\{new_filename + file_ext}"
+                    )
+                dupe_count = 0
+            shutil.copy(
+                f"{in_folder}\\{file}", f"{out_folder}\\{new_filename + file_ext}"
+            )
+            success_count += 1
+    print(
+        f"---\nDone! {success_count} file(s) successfully copied and renamed. Check folder '{out_folder}' for renamed files."
+    )
+    input("Press enter to exit.")
+
+
+if __name__ == "__main__":
+    input_directory = input("Path of archive media folder: ")
+    output_directory = input("Path of folder to output renamed files to: ")
+    if not os.path.exists(input_directory) or not os.path.exists(output_directory):
+        print(
+            "One or more specified directories do not exist! Please try again.",
+            file=sys.stderr,
+        )
+        input("Press enter to exit.")
+    else:
+        renameToNewDirectory(input_directory, output_directory)
